@@ -21,7 +21,11 @@ construccionctm12 = r"{0}\URBANO_CTM12\U_CONSTRUCCION_CTM12".format(gdb_name)
 unidadconstruccionctm12 = r"{0}\URBANO_CTM12\U_UNIDAD_CTM12".format(gdb_name)
 nomeclaturadom = r"{0}\URBANO_CTM12\U_NOMEN_DOMICILIARIA_CTM12".format(gdb_name)
 manzanactm12 = r"{0}\URBANO_CTM12\U_MANZANA_CTM12".format(gdb_name)
-intersectctm12 = r"{0}\INTERSECT".format(gdb_name)           
+terrenoinformalctm12 = r"{0}\URBANO_CTM12\U_TERRENO_INFORMAL".format(gdb_name)
+construccioninformalctm12 = r"{0}\URBANO_CTM12\U_CONSTRUCCION_INFORMAL".format(gdb_name)
+unidadinformalctm12 = r"{0}\URBANO_CTM12\U_UNIDAD_INFORMAL".format(gdb_name)
+intersectctm12 = r"{0}\INTERSECT".format(gdb_name)
+intersectInformalctm12 = r"{0}\INFORMAL".format(gdb_name)            
 
 
 # ARCHIVO DE SALIDA
@@ -337,7 +341,7 @@ def data_process(layer, field, validar_funcion):
     with arcpy.da.SearchCursor(layer, [field]) as cursor:
         return [(row[0], validar_funcion(row[0])) for row in cursor]
 
-
+#formales
 codigo_terrenos = data_process(terrenoctm12, "CODIGO", validar_codigo)
 manzana_terrenos = data_process(terrenoctm12, "MANZANA_CODIGO", validar_codigo_manzana)
 codigo_anterior_terrenos = data_process(terrenoctm12, "CODIGO_ANTERIOR", validar_codigo_anterior)
@@ -366,52 +370,97 @@ correspondencia_unidad = campos_unidad(unidadconstruccionctm12, "CODIGO", "TERRE
 #Geometrias
 intersect_tcu = intersect(intersectctm12, "CODIGO_12","CODIGO_1","TERRENO_CODIGO_1", "CODIGO", "TERRENO_CODIGO","CONSTRUCCION_CODIGO")
 intersect_man = intersect_manzana (intersectctm12, "CODIGO_12","CODIGO_1","TERRENO_CODIGO_1", "CODIGO", "TERRENO_CODIGO","CONSTRUCCION_CODIGO","CODIGO_12_13")
+#Informales
+terrenos_codigo_informal = data_process(terrenoinformalctm12, "CODIGO",validar_codigo_informal)
+terreno_condigo_anterior_informal = data_process(terrenoinformalctm12, "CODIGO_ANTERIOR",validar_codigo_anterior_informal)
+terreno_codigoMunicipio_informal = data_process(terrenoinformalctm12, "CODIGO_MUNICIPIO", validar_codigo_mpio)
+construccion_codigo_informal = data_process(construccioninformalctm12, "CODIGO", validar_codigo_informal)
+construccion_codigoterreno_informal = data_process(construccioninformalctm12, "TERRENO_CODIGO", validar_codigo_informal)
+constrcuccion_codigoMunicipio_informal = data_process(construccioninformalctm12, "CODIGO_MUNICIPIO", validar_codigo_mpio)
+construccion_etiqueta_informal = data_process(construccioninformalctm12,"ETIQUETA",validar_Uconst_etiqueta)
+construccion_identificador_informal = data_process(construccioninformalctm12, "IDENTIFICADOR",validar_Uconst_ident)
+construccion_antiguo_informal = data_process(construccioninformalctm12, "CODIGO_ANTERIOR",validar_codigo_anterior_informal)
+unidad_codigo_informal = data_process(unidadinformalctm12, "CODIGO",validar_codigo_informal)
+unidad_terreno_informal = data_process(unidadinformalctm12, "TERRENO_CODIGO",validar_codigo_informal)
+unidad_construccion_informal = data_process(unidadinformalctm12, "CONSTRUCCION_CODIGO", validar_codigo_informal)
+unidad_municipio_informal = data_process(unidadinformalctm12, "CODIGO_MUNICIPIO",validar_codigo_mpio)
+unidad_etiqueta_informal = data_process(unidadinformalctm12, "ETIQUETA",validar_unidad_etiqueta)
+unidada_identificador_informal = data_process(unidadinformalctm12, "IDENTIFICADOR", validar_unidad_identificador)
+#Informales correspondencia 
+correspondecia_construccion_informal = campos_construccion(construccioninformalctm12, "CODIGO","TERRENO_CODIGO")
+correspondencia_unidad_informal = campos_unidad(unidadinformalctm12, "CODIGO","TERRENO_CODIGO","CONSTRUCCION_CODIGO")
+#Informales intersect
+intersect_informal = intersect(intersectInformalctm12, "CODIGO","TERRENO_CODIGO","CONSTRUCCION_CODIGO","CODIGO_1","TERRENO_CODIGO_1","CODIGO_12")
+
 
 # GUARDAR EN CSV
-with open(output_csv, 'wb') as file:
-    writer = csv.writer(file)
-    writer.writerow(["CODIGO", "CAPA", "ESTADO"])
-    
-    def escribir_resultados(data, capa):
-        for codigo, estado in data:
-            writer.writerow([codigo if codigo is not None else "vacio", capa, estado])
-    
-    
-    escribir_resultados(codigo_terrenos, "Terreno_codigo")
-    escribir_resultados(manzana_terrenos, "Terreno_manzana")
-    escribir_resultados(codigo_anterior_terrenos, "Terreno_codigo_anterior")
-    escribir_resultados(codigo_municipio, "Terreno_codigo_municipio")
-    escribir_resultados(correspondencia_terreno, "Terreno_correspondecia")
-    
-    escribir_resultados(codigo_construcciones, "Uconstruccion_codigo")
-    escribir_resultados(construccion_terreno, "Uconstruccion_terreno")
-    escribir_resultados(construccion_municipio, "Uconstruccion_codigo_municipio")
-    escribir_resultados(construccion_etiqueta, "Uconstruccion_etiqueta")
-    escribir_resultados(construccion_identificador, "Uconstruccion_identificador")
-    escribir_resultados(correspondecia_construccion, "Uconstruccion_correspondencia")
-    escribir_resultados(construccion_antiguo, "Uconstruccion_codigoanterior")
-    
-    escribir_resultados(unidad_codigo, "Unidad_codigo")
-    escribir_resultados(unidad_terreno, "Unidad_terreno")
-    escribir_resultados(unidad_construccion, "Unidad_construccion")
-    escribir_resultados(unidad_municipio, "Unidad_codigo_municipio")
-    escribir_resultados(unidad_etiqueta, "Unidad_etiqueta")
-    escribir_resultados(unidada_identificador, "Unidad_identificador")
-    escribir_resultados(correspondencia_unidad, "Unidad_correspondencia")
-    
-    escribir_resultados(nomeclatura_codigo, "Nomeclatura_domic_codigo")
-    escribir_resultados(nomenclatura_direccion, "Nomeclatura_domic_direccion")
-    escribir_resultados(manzana_codigo, "Manzana_codigo")
-    escribir_resultados(manzana_codigo_anterior, "Manzana_codigo_anterior")
-    escribir_resultados(manzana_municipio, "Manzana_codigo_municipio")
+def escribir_resultados(data, capa):
+    for codigo, estado in data:
+        writer.writerow([codigo if codigo is not None else "vacio", capa, estado])
 
-    escribir_resultados(intersect_tcu,"Terreno_Construccion_Unidad")
-    escribir_resultados(intersect_man, "Manzana_terreno_construccion_unidad")
+try:
+    with open(output_csv, 'wb') as file:
+        writer = csv.writer(file)
+        writer.writerow(["CODIGO", "CAPA", "ESTADO"])
+        
+        
+        #terreno
+        escribir_resultados(codigo_terrenos, "Terreno_codigo")
+        escribir_resultados(manzana_terrenos, "Terreno_manzana")
+        escribir_resultados(codigo_anterior_terrenos, "Terreno_codigo_anterior")
+        escribir_resultados(codigo_municipio, "Terreno_codigo_municipio")
+        escribir_resultados(correspondencia_terreno, "Terreno_CorrespondeciaEntreColumnas")
+        #construccion
+        escribir_resultados(codigo_construcciones, "Uconstruccion_codigo")
+        escribir_resultados(construccion_terreno, "Uconstruccion_terreno")
+        escribir_resultados(construccion_municipio, "Uconstruccion_codigo_municipio")
+        escribir_resultados(construccion_etiqueta, "Uconstruccion_etiqueta")
+        escribir_resultados(construccion_identificador, "Uconstruccion_identificador")
+        escribir_resultados(construccion_antiguo, "Uconstruccion_codigoanterior")
+        escribir_resultados(correspondecia_construccion, "Uconstruccion_CorrespondenciaEntreColumnas")
+        #unidad
+        escribir_resultados(unidad_codigo, "Unidad_codigo")
+        escribir_resultados(unidad_terreno, "Unidad_terreno")
+        escribir_resultados(unidad_construccion, "Unidad_construccion")
+        escribir_resultados(unidad_municipio, "Unidad_codigo_municipio")
+        escribir_resultados(unidad_etiqueta, "Unidad_etiqueta")
+        escribir_resultados(unidada_identificador, "Unidad_identificador")
+        escribir_resultados(correspondencia_unidad, "Unidad_CorrespondenciaEntreColumnas")
+        #nomeclatura
+        escribir_resultados(nomeclatura_codigo, "Nomeclatura_domic_codigo")
+        escribir_resultados(nomenclatura_direccion, "Nomeclatura_domic_direccion")
+        #manzana
+        escribir_resultados(manzana_codigo, "Manzana_codigo")
+        escribir_resultados(manzana_codigo_anterior, "Manzana_codigo_anterior")
+        escribir_resultados(manzana_municipio, "Manzana_codigo_municipio")
+        #intersect
+        escribir_resultados(intersect_tcu,"Terreno_Construccion_Unidad")
+        escribir_resultados(intersect_man, "Manzana_terreno_construccion_unidad")
+        #terreno informal
+        escribir_resultados(terrenos_codigo_informal, "Terreno_Codigo_Informal")
+        escribir_resultados(terreno_condigo_anterior_informal, "Terreno_CodigoAnterior_Informal")
+        escribir_resultados(terreno_codigoMunicipio_informal, "Terreno_CodigoMunicipio_Informal")
+        #construccion informal
+        escribir_resultados(construccion_codigo_informal, "Construccion_Codigo_Informal")
+        escribir_resultados(construccion_codigoterreno_informal, "Construccion_CoditoTerreno_Informal")
+        escribir_resultados(constrcuccion_codigoMunicipio_informal, "Construccion_CodigoMunicipio_Informal")
+        escribir_resultados(construccion_etiqueta_informal, "Construccion_Etiqueta_Informal")
+        escribir_resultados(construccion_identificador_informal, "Construccion_Identificador_Informal")
+        escribir_resultados(construccion_antiguo_informal, "Construccion_CodigoAntiguo_Informal")
+        escribir_resultados(correspondecia_construccion_informal, "Construccion_CorrespondieciaEntreColumnas_Informal")
+        #unidad informal
+        escribir_resultados(unidad_codigo_informal, "Unidad_Codigo_Informal")
+        escribir_resultados(unidad_terreno_informal, "Unidad_CodigoTerreno_Informal")
+        escribir_resultados(unidad_construccion_informal, "Unidad_CodigoConstruccion_Informal")
+        escribir_resultados(unidad_municipio_informal, "Unidad_CodigoMunicipio_Informal")
+        escribir_resultados(unidad_etiqueta_informal, "Unidad_Etiqueta_Informal")
+        escribir_resultados(unidada_identificador_informal, "Unidad_Identificador_Informal")
+        escribir_resultados(correspondencia_unidad_informal,"Unidad_CorrespondenciaEntreColumnas_Informal")
+        #intersect informal
+        escribir_resultados(intersect_informal, "Terreno_Construccion_Unidad_informal")
 
-       
-    
-
-
-#ELABORADO POR IVAN PINZA
-print("Resultados exportados a:", output_csv)
-arcpy.AddWarning("Proceso finalizado con exito, resutlados exportados a C:\temp\resultados_validacion.csv")
+    #ELABORADO POR IVAN PINZA
+    print("Resultados exportados a:", output_csv)
+    arcpy.AddWarning("Proceso finalizado con exito, resutlados exportados a C:\temp\resultados_validacion.csv")
+except IOError as error:
+    arcpy.AddMessage("MI PEZZZZZ CIERRA EL CSV ANTES DE CONTINUAR =================>"+ str(error))
